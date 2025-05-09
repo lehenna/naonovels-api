@@ -19,7 +19,7 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
-  @Post('login')
+  @Post('magic-link')
   async sendMagicLink(
     @Body() { email, redirect }: { email: string; redirect: string },
   ) {

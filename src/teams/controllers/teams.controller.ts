@@ -21,6 +21,7 @@ import { TeamInvitationsService } from '../services/team-invitations.service';
 import { TeamRoles } from '../schemas/team-member.schema';
 import { UploadsService } from '@/common/services/uploads.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UpdateTeamDto } from '../dto/update-users.dto';
 
 @Controller('teams')
 export class TeamsController {
@@ -103,42 +104,14 @@ export class TeamsController {
     return this.teamsService.deleteTeam(teamId);
   }
 
-  @Patch(':teamId/icon')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('icon'))
-  async updateTeamIcon(
-    @Param('icon') teamId: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req,
-  ) {
-    const userId = req.user.id;
-    const member = await this.teamMembersService.getMemberByTeamAndUser(
-      teamId,
-      userId,
-    );
-
-    if (
-      !member ||
-      (member.role !== TeamRoles.ADMIN && member.role !== TeamRoles.OWNER)
-    )
-      throw new HttpException('Permission denied.', HttpStatus.UNAUTHORIZED);
-
-    const fileName = await this.uploadsService.saveImage(file);
-
-    return this.teamsService.updateTeam(teamId, { icon: fileName });
-  }
-
   @Patch(':teamId')
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('icon'))
   async updateTeam(
     @Param('teamId') teamId: string,
-    @Body()
-    {
-      name,
-      description,
-      identifier,
-    }: { name?: string; description?: string; identifier?: string },
+    @Body() teamData: UpdateTeamDto,
     @Req() req,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const userId = req.user.id;
     const member = await this.teamMembersService.getMemberByTeamAndUser(
@@ -152,9 +125,11 @@ export class TeamsController {
     )
       throw new HttpException('Permission denied.', HttpStatus.UNAUTHORIZED);
 
-    if (identifier) {
-      identifier = identifier.toLowerCase().trim();
-      const teamExists = await this.teamsService.getTeam({ identifier });
+    if (teamData.identifier) {
+      teamData.identifier = teamData.identifier.toLowerCase().trim();
+      const teamExists = await this.teamsService.getTeam({
+        identifier: teamData.identifier,
+      });
       if (teamExists)
         throw new HttpException(
           'Identifier already in use.',
@@ -162,7 +137,12 @@ export class TeamsController {
         );
     }
 
-    return this.teamsService.updateTeam(teamId, { name, description });
+    if (file) {
+      const fileName = await this.uploadsService.saveImage(file);
+      teamData.icon = fileName;
+    }
+
+    return this.teamsService.updateTeam(teamId, teamData);
   }
 
   @Post(':teamId/members')

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Team } from '../schemas/team.schema';
+import { UpdateTeamDto } from '../dto/update-users.dto';
 
 @Injectable()
 export class TeamsService {
@@ -41,10 +42,7 @@ export class TeamsService {
     return this.teamModel.findById(teamId).exec();
   }
 
-  async updateTeam(
-    teamId: string,
-    updateData: { name?: string; description?: string; icon?: string },
-  ) {
+  async updateTeam(teamId: string, updateData: UpdateTeamDto) {
     return this.teamModel
       .findByIdAndUpdate(teamId, updateData, { new: true })
       .exec();

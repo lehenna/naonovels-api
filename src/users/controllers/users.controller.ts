@@ -9,6 +9,7 @@ import {
   UploadedFile,
   HttpException,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { UpdateUserDto } from '../dto/users.dto';
@@ -24,8 +25,12 @@ export class UsersController {
   ) {}
 
   @Get()
-  async getAllUsers() {
-    return this.usersService.findAll();
+  async getAllUsers(
+    @Query('name') name?: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.usersService.findAll({ name }, page, limit);
   }
 
   @Get('me')
@@ -34,32 +39,31 @@ export class UsersController {
     return { user: req.user };
   }
 
-  @Patch(':teamId/icon')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('icon'))
-  async updateUserIcon(@UploadedFile() file: Express.Multer.File, @Req() req) {
-    const userId = req.user.id;
-
-    const fileName = await this.uploadsService.saveImage(file);
-
-    return this.usersService.update(userId, { icon: fileName });
-  }
-
   @Patch()
   @UseGuards(JwtAuthGuard)
-  async updateMe(@Req() req, @Body() userData: UpdateUserDto) {
+  @UseInterceptors(FileInterceptor('icon'))
+  async updateMe(
+    @Req() req,
+    @Body() userData: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
     const userId = req.user.id;
 
     if (userData.identifier) {
       userData.identifier = userData.identifier.toLowerCase().trim();
-      const teamExists = await this.usersService.findByIdentifier(
+      const userExists = await this.usersService.findByIdentifier(
         userData.identifier,
       );
-      if (teamExists)
+      if (userExists)
         throw new HttpException(
           'Identifier already in use.',
           HttpStatus.BAD_REQUEST,
         );
+    }
+
+    if (file) {
+      const fileName = await this.uploadsService.saveImage(file);
+      userData.icon = fileName;
     }
 
     return this.usersService.update(userId, userData);
