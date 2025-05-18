@@ -14,6 +14,26 @@ export class PostsService {
     private readonly teamMembersService: TeamMembersService,
   ) {}
 
+  async getAllPosts(filters: any, page: number, limit: number) {
+    const query: any = {};
+
+    if (filters.teamId) query.teamId = filters.teamId;
+
+    const total = await this.postModel.countDocuments(query);
+    const results = await this.postModel
+      .find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return {
+      page,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+      results,
+    };
+  }
+
   async createPost(createPostDto: CreatePostDto, userId: string) {
     const member = await this.teamMembersService.getMemberByTeamAndUser(
       createPostDto.teamId,

@@ -3,7 +3,6 @@ import {
   Post,
   Get,
   Patch,
-  Delete,
   Param,
   Body,
   UseGuards,
@@ -55,17 +54,5 @@ export class VolumesController {
       throw new HttpException('Permission denied', HttpStatus.UNAUTHORIZED);
 
     return this.volumesService.updateVolume(volumeId, updateVolumeDto);
-  }
-
-  @Delete(':volumeId')
-  @UseGuards(JwtAuthGuard)
-  async deleteVolume(@Param('volumeId') volumeId: string, @Req() req) {
-    const userId = req.user.id;
-    const hasPermission = await this.teamMembersService.hasSomeTeam(userId);
-
-    if (!hasPermission)
-      throw new HttpException('Permission denied', HttpStatus.UNAUTHORIZED);
-
-    return this.volumesService.deleteVolume(volumeId);
   }
 }

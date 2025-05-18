@@ -3,7 +3,6 @@ import {
   Post,
   Get,
   Patch,
-  Delete,
   Param,
   Body,
   UseGuards,
@@ -55,18 +54,5 @@ export class ChaptersController {
       throw new HttpException('Permission denied', HttpStatus.UNAUTHORIZED);
 
     return this.chaptersService.updateChapter(chapterId, updateChapterDto);
-  }
-
-  @Delete(':chapterId')
-  @UseGuards(JwtAuthGuard)
-  async deleteChapter(@Param('chapterId') chapterId: string, @Req() req) {
-    const userId = req.user.id;
-
-    const hasPermission = await this.teamMembersService.hasSomeTeam(userId);
-
-    if (!hasPermission)
-      throw new HttpException('Permission denied', HttpStatus.UNAUTHORIZED);
-
-    return this.chaptersService.deleteChapter(chapterId);
   }
 }

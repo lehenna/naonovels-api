@@ -154,6 +154,36 @@ export class TeamsController {
     return this.teamMembersService.addMember(teamId, userId, role);
   }
 
+  @Patch(':teamId/members/:userId')
+  @UseGuards(JwtAuthGuard)
+  async updateMember(
+    @Param('teamId') teamId: string,
+    @Param('userId') userId: string,
+    @Body() { role }: { role: TeamRoles },
+    @Req() req,
+  ) {
+    const requesterId = req.user.id;
+    const requesterRole = await this.teamMembersService.getMemberByTeamAndUser(
+      teamId,
+      requesterId,
+    );
+
+    if (
+      !requesterRole ||
+      (requesterRole.role !== TeamRoles.ADMIN &&
+        requesterRole.role !== TeamRoles.OWNER)
+    )
+      throw new HttpException('Permission denied.', HttpStatus.UNAUTHORIZED);
+
+    if (role === TeamRoles.OWNER && requesterRole.role !== TeamRoles.OWNER)
+      throw new HttpException('Permission denied.', HttpStatus.UNAUTHORIZED);
+
+    if (role === TeamRoles.ADMIN && requesterRole.role !== TeamRoles.OWNER)
+      throw new HttpException('Permission denied.', HttpStatus.UNAUTHORIZED);
+
+    return this.teamMembersService.removeMember(teamId, userId);
+  }
+
   @Get(':teamId/members')
   async getMembers(@Param('teamId') teamId: string) {
     return this.teamMembersService.getMembersByTeam(teamId);

@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { PostsService } from '../services/posts.service';
@@ -23,6 +24,15 @@ export class PostsController {
   async createPost(@Body() createPostDto: CreatePostDto, @Req() req) {
     const userId = req.user.id;
     return this.postsService.createPost(createPostDto, userId);
+  }
+
+  @Get()
+  async getAllPosts(
+    @Query('teamId') teamId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.postsService.getAllPosts({ teamId }, page, limit);
   }
 
   @Get(':postId')

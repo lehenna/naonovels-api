@@ -66,6 +66,7 @@ export class UsersController {
       userData.icon = fileName;
     }
 
-    return this.usersService.update(userId, userData);
+    const user = this.usersService.update(userId, userData);
+    return { user };
   }
 }
