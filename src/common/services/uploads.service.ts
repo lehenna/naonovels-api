@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
+import { nanoid } from 'nanoid';
 import * as path from 'path';
 import * as sharp from 'sharp';
 
@@ -23,7 +24,7 @@ export class UploadsService {
         HttpStatus.BAD_REQUEST,
       );
 
-    const fileName = `${Date.now()}-${file.originalname.replace(/\s/g, '')}.png`;
+    const fileName = `${Date.now()}-${nanoid(31)}.png`;
     const filePath = path.join(this.uploadDir, fileName);
 
     await sharp(file.buffer)
@@ -32,5 +33,10 @@ export class UploadsService {
       .toFile(filePath);
 
     return fileName;
+  }
+
+  async removeImage(fileName: string) {
+    const filePath = path.join(this.uploadDir, fileName);
+    fs.unlink(filePath, () => {});
   }
 }

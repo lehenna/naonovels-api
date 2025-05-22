@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Body,
-  UseGuards,
   Req,
   Patch,
   UseInterceptors,
@@ -11,11 +10,11 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { UpdateUserDto } from '../dto/users.dto';
 import { UsersService } from '../services/users.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from '@/common/services/uploads.service';
+import { Public } from '@/common/lib/decorators';
 
 @Controller('users')
 export class UsersController {
@@ -24,6 +23,7 @@ export class UsersController {
     private readonly uploadsService: UploadsService,
   ) {}
 
+  @Public()
   @Get()
   async getAllUsers(
     @Query('name') name?: string,
@@ -34,14 +34,12 @@ export class UsersController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
   async getMe(@Req() req) {
     return { user: req.user };
   }
 
-  @Patch()
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('icon'))
+  @Patch('me')
+  @UseInterceptors(FileInterceptor('avatar'))
   async updateMe(
     @Req() req,
     @Body() userData: UpdateUserDto,
@@ -49,24 +47,28 @@ export class UsersController {
   ) {
     const userId = req.user.id;
 
-    if (userData.identifier) {
-      userData.identifier = userData.identifier.toLowerCase().trim();
-      const userExists = await this.usersService.findByIdentifier(
-        userData.identifier,
+    if (userData.username) {
+      userData.username = userData.username.toLowerCase().trim();
+      const userExists = await this.usersService.findByUsername(
+        userData.username,
       );
       if (userExists)
         throw new HttpException(
-          'Identifier already in use.',
+          'Username already in use.',
           HttpStatus.BAD_REQUEST,
         );
     }
 
+    delete userData.avatar;
     if (file) {
       const fileName = await this.uploadsService.saveImage(file);
-      userData.icon = fileName;
+      userData.avatar = fileName;
+      if (req.user.avatar)
+        await this.uploadsService.removeImage(req.user.avatar);
     }
 
-    const user = this.usersService.update(userId, userData);
+    const user = await this.usersService.update(userId, userData);
+
     return { user };
   }
 }

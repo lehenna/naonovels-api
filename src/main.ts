@@ -1,9 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
+
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      credentials: true,
+      origin: (origin, callback) => {
+        callback(null, origin);
+      },
+    },
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Nao Novels API')
@@ -14,6 +23,7 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
+  app.use(cookieParser());
   await app.listen(process.env.PORT ?? 4000);
 }
 

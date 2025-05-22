@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import { User } from '../schemas/users.schema';
-import { CreateUserDto } from '../dto/users.dto';
+import { CreateUserDto, UpdateUserDto } from '../dto/users.dto';
 
 @Injectable()
 export class UsersService {
@@ -31,8 +31,12 @@ export class UsersService {
     };
   }
 
-  async findByIdentifier(identifier: string): Promise<User | null> {
-    return this.userModel.findOne({ identifier }).exec();
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userModel.findOne({ username }).exec();
+  }
+
+  async findById(id: string): Promise<User | null> {
+    return this.userModel.findById(id).exec();
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -44,10 +48,7 @@ export class UsersService {
     return newUser.save();
   }
 
-  async update(
-    teamId: string,
-    updateData: { name?: string; description?: string; icon?: string },
-  ) {
+  async update(teamId: string, updateData: UpdateUserDto) {
     return this.userModel
       .findByIdAndUpdate(teamId, updateData, { new: true })
       .exec();

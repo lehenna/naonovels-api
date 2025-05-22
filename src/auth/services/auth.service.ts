@@ -6,7 +6,12 @@ export class AuthService {
   constructor(private jwtService: JwtService) {}
 
   async generateJwt(userId: string) {
-    return this.jwtService.sign({ userId });
+    return this.jwtService.sign(
+      { userId },
+      {
+        expiresIn: '14d',
+      },
+    );
   }
 
   async verifyJwt(token: string) {

@@ -1,22 +1,16 @@
 import { Document } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-export enum TeamRoles {
-  OWNER = 'owner',
-  ADMIN = 'admin',
-  MEMBER = 'member',
-}
-
 @Schema({ timestamps: true })
 export class Team extends Document {
-  @Prop({ required: true })
+  @Prop({ unique: true, required: true, trim: true, lowercase: true })
   name: string;
 
   @Prop()
-  icon?: string;
+  publicName?: string;
 
-  @Prop({ unique: true, required: true })
-  identifier: string;
+  @Prop()
+  icon?: string;
 
   @Prop()
   description?: string;

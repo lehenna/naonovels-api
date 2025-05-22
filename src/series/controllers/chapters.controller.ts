@@ -5,16 +5,15 @@ import {
   Patch,
   Param,
   Body,
-  UseGuards,
   Req,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TeamMembersService } from '@/teams/services/team-members.service';
 import { CreateChapterDto } from '../dto/create-chapter.dto';
 import { UpdateChapterDto } from '../dto/update-chapter.dto';
 import { ChaptersService } from '../services/chapters.service';
+import { Public } from '@/common/lib/decorators';
 
 @Controller('chapters')
 export class ChaptersController {
@@ -24,7 +23,6 @@ export class ChaptersController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   async createChapter(@Body() createChapterDto: CreateChapterDto, @Req() req) {
     const userId = req.user.id;
     const hasPermission = await this.teamMembersService.hasSomeTeam(userId);
@@ -35,13 +33,13 @@ export class ChaptersController {
     return this.chaptersService.createChapter(createChapterDto);
   }
 
+  @Public()
   @Get(':chapterId')
   async getChapter(@Param('chapterId') chapterId: string) {
     return this.chaptersService.getChapterById(chapterId);
   }
 
   @Patch(':chapterId')
-  @UseGuards(JwtAuthGuard)
   async updateChapter(
     @Param('chapterId') chapterId: string,
     @Body() updateChapterDto: UpdateChapterDto,

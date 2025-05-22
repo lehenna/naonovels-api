@@ -1,20 +1,27 @@
 import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { UserRoles } from '../schemas/users.schema';
 
 export class CreateUserDto {
   @IsEmail()
   email: string;
+
+  @IsString()
+  username: string;
+
+  @IsString()
+  role: UserRoles;
 }
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  icon?: string;
+  avatar?: string;
 
   @IsOptional()
   @IsString()
-  identifier?: string;
+  username?: string;
 
   @IsOptional()
   @IsString()
-  description?: string;
+  publicName?: string;
 }

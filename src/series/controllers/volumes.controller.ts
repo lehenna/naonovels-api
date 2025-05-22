@@ -5,16 +5,15 @@ import {
   Patch,
   Param,
   Body,
-  UseGuards,
   Req,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TeamMembersService } from '@/teams/services/team-members.service';
 import { CreateVolumeDto } from '../dto/create-volume.dto';
 import { UpdateVolumeDto } from '../dto/update-volume.dto';
 import { VolumesService } from '../services/volumes.service';
+import { Public } from '@/common/lib/decorators';
 
 @Controller('volumes')
 export class VolumesController {
@@ -24,7 +23,6 @@ export class VolumesController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   async createVolume(@Body() createVolumeDto: CreateVolumeDto, @Req() req) {
     const userId = req.user.id;
     const hasPermission = await this.teamMembersService.hasSomeTeam(userId);
@@ -35,13 +33,13 @@ export class VolumesController {
     return this.volumesService.createVolume(createVolumeDto);
   }
 
+  @Public()
   @Get(':volumeId')
   async getVolume(@Param('volumeId') volumeId: string) {
     return this.volumesService.getVolumeById(volumeId);
   }
 
   @Patch(':volumeId')
-  @UseGuards(JwtAuthGuard)
   async updateVolume(
     @Param('volumeId') volumeId: string,
     @Body() updateVolumeDto: UpdateVolumeDto,

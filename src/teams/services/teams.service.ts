@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Team } from '../schemas/team.schema';
-import { UpdateTeamDto } from '../dto/update-users.dto';
+import { UpdateTeamDto } from '../dto/update-teams.dto';
+import { CreateTeamDto } from '../dto/create-teams.dto';
 
 @Injectable()
 export class TeamsService {
@@ -30,11 +31,11 @@ export class TeamsService {
     };
   }
 
-  async createTeam(name: string, identifier: string) {
-    return this.teamModel.create({ name, identifier });
+  async createTeam(data: CreateTeamDto) {
+    return this.teamModel.create(data);
   }
 
-  async getTeam(where: { name?: string; identifier?: string }) {
+  async getTeam(where: { name?: string; publicName?: string }) {
     return this.teamModel.findOne(where).exec();
   }
 

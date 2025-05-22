@@ -5,21 +5,12 @@ export class CreateTeamDto {
   @IsNotEmpty()
   name: string;
 
-  @IsString()
-  @IsNotEmpty()
-  identifier: string;
-}
-
-export class UpdateTeamDto {
   @IsOptional()
   @IsString()
   icon?: string;
 
   @IsOptional()
   @IsString()
-  identifier?: string;
-
-  @IsOptional()
-  @IsString()
-  description?: string;
+  @IsNotEmpty()
+  publicName?: string;
 }

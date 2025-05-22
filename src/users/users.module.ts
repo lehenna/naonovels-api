@@ -4,12 +4,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
 import { User, UserSchema } from './schemas/users.schema';
-import { JwtWrapperModule } from '@/common/modules/jwt-wrapper.module';
 import { UploadsModule } from '@/common/modules/uploads.module';
 
 @Module({
   imports: [
-    JwtWrapperModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     UploadsModule,
   ],

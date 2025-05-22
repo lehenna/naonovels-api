@@ -4,7 +4,6 @@ import {
   Get,
   Param,
   Body,
-  UseGuards,
   Req,
   Query,
   Patch,
@@ -13,13 +12,13 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { SeriesService } from '../services/series.service';
 import { TeamMembersService } from '@/teams/services/team-members.service';
 import { CreateSeriesDto } from '../dto/create-series.dto';
 import { UpdateSeriesDto } from '../dto/update-series.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadsService } from '@/common/services/uploads.service';
+import { Public } from '@/common/lib/decorators';
 
 @Controller('series')
 export class SeriesController {
@@ -29,6 +28,7 @@ export class SeriesController {
     private readonly uploadsService: UploadsService,
   ) {}
 
+  @Public()
   @Get()
   async listSeries(
     @Query('title') title?: string,
@@ -56,7 +56,6 @@ export class SeriesController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('icon'))
   async createSerie(
     @Body() serieData: CreateSeriesDto,
@@ -84,7 +83,6 @@ export class SeriesController {
   }
 
   @Patch(':seriesId')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('icon'))
   async updateSeries(
     @Param('seriesId') seriesId: string,

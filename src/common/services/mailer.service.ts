@@ -18,7 +18,7 @@ export class MailerService {
 
   async send(userEmail: string, subject: string, html: string) {
     await this.transporter.sendMail({
-      from: 'no-reply@lehenna.com',
+      from: 'hello@lehenna.com',
       to: userEmail,
       subject,
       html,

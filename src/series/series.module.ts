@@ -11,7 +11,6 @@ import { VolumesService } from './services/volumes.service';
 import { ChaptersService } from './services/chapters.service';
 import { Volume, VolumeSchema } from './schemas/volume.schema';
 import { Chapter, ChapterSchema } from './schemas/chapter.schema';
-import { JwtWrapperModule } from '@/common/modules/jwt-wrapper.module';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { JwtWrapperModule } from '@/common/modules/jwt-wrapper.module';
     ]),
     TeamsModule,
     UploadsModule,
-    JwtWrapperModule,
   ],
   controllers: [SeriesController, ChaptersController, VolumesController],
   providers: [SeriesService, VolumesService, ChaptersService],

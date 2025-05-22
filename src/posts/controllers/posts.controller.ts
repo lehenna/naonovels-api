@@ -6,26 +6,25 @@ import {
   Delete,
   Param,
   Body,
-  UseGuards,
   Req,
   Query,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { PostsService } from '../services/posts.service';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
+import { Public } from '@/common/lib/decorators';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   async createPost(@Body() createPostDto: CreatePostDto, @Req() req) {
     const userId = req.user.id;
     return this.postsService.createPost(createPostDto, userId);
   }
 
+  @Public()
   @Get()
   async getAllPosts(
     @Query('teamId') teamId: string,
@@ -35,13 +34,13 @@ export class PostsController {
     return this.postsService.getAllPosts({ teamId }, page, limit);
   }
 
+  @Public()
   @Get(':postId')
   async getPost(@Param('postId') postId: string) {
     return this.postsService.getPostById(postId);
   }
 
   @Patch(':postId')
-  @UseGuards(JwtAuthGuard)
   async updatePost(
     @Param('postId') postId: string,
     @Body() updatePostDto: UpdatePostDto,
@@ -52,7 +51,6 @@ export class PostsController {
   }
 
   @Delete(':postId')
-  @UseGuards(JwtAuthGuard)
   async deletePost(@Param('postId') postId: string, @Req() req) {
     const userId = req.user.id;
     return this.postsService.deletePost(postId, userId);

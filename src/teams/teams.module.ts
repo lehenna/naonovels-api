@@ -12,7 +12,6 @@ import { TeamMembersService } from './services/team-members.service';
 import { TeamInvitationsService } from './services/team-invitations.service';
 import { TeamsController } from './controllers/teams.controller';
 import { UploadsModule } from '@/common/modules/uploads.module';
-import { JwtWrapperModule } from '@/common/modules/jwt-wrapper.module';
 
 @Module({
   imports: [
@@ -23,7 +22,6 @@ import { JwtWrapperModule } from '@/common/modules/jwt-wrapper.module';
     ]),
     MailerModule,
     UploadsModule,
-    JwtWrapperModule,
   ],
   controllers: [TeamsController],
   providers: [TeamsService, TeamMembersService, TeamInvitationsService],

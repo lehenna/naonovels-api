@@ -5,7 +5,6 @@ import {
   Delete,
   Param,
   Body,
-  UseGuards,
   Patch,
   Req,
   UseInterceptors,
@@ -14,14 +13,15 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { TeamsService } from '../services/teams.service';
 import { TeamMembersService } from '../services/team-members.service';
 import { TeamInvitationsService } from '../services/team-invitations.service';
 import { TeamRoles } from '../schemas/team-member.schema';
 import { UploadsService } from '@/common/services/uploads.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UpdateTeamDto } from '../dto/update-users.dto';
+import { CreateTeamDto } from '../dto/create-teams.dto';
+import { UpdateTeamDto } from '../dto/update-teams.dto';
+import { Public } from '@/common/lib/decorators';
 
 @Controller('teams')
 export class TeamsController {
@@ -32,6 +32,7 @@ export class TeamsController {
     private readonly uploadsService: UploadsService,
   ) {}
 
+  @Public()
   @Get()
   async listTeams(
     @Query('name') name?: string,
@@ -47,7 +48,6 @@ export class TeamsController {
   }
 
   @Get('user')
-  @UseGuards(JwtAuthGuard)
   async listUserTeams(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
@@ -62,35 +62,46 @@ export class TeamsController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('icon'))
   async createTeam(
-    @Body() { name, identifier }: { name: string; identifier: string },
+    @Body() { name, publicName }: CreateTeamDto,
     @Req() req,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const userId = req.user.id;
-    identifier = identifier.toLowerCase().trim();
+    name = name.toLowerCase().trim();
 
-    const teamExists = await this.teamsService.getTeam({ identifier });
+    const teamExists = await this.teamsService.getTeam({ name });
     if (teamExists)
       throw new HttpException(
         'Identifier already in use.',
         HttpStatus.BAD_REQUEST,
       );
 
-    const team = await this.teamsService.createTeam(name, identifier);
+    const data: CreateTeamDto = {
+      name: name,
+      publicName,
+    };
+
+    if (file) {
+      const fileName = await this.uploadsService.saveImage(file);
+      data.icon = fileName;
+    }
+
+    const team = await this.teamsService.createTeam(data);
 
     await this.teamMembersService.addMember(team.id, userId, TeamRoles.OWNER);
 
     return team;
   }
 
+  @Public()
   @Get(':teamId')
   async getTeam(@Param('teamId') teamId: string) {
     return this.teamsService.getTeamById(teamId);
   }
 
   @Delete(':teamId')
-  @UseGuards(JwtAuthGuard)
   async deleteTeam(@Param('teamId') teamId: string, @Req() req) {
     const userId = req.user.id;
     const member = await this.teamMembersService.getMemberByTeamAndUser(
@@ -105,7 +116,6 @@ export class TeamsController {
   }
 
   @Patch(':teamId')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('icon'))
   async updateTeam(
     @Param('teamId') teamId: string,
@@ -125,10 +135,10 @@ export class TeamsController {
     )
       throw new HttpException('Permission denied.', HttpStatus.UNAUTHORIZED);
 
-    if (teamData.identifier) {
-      teamData.identifier = teamData.identifier.toLowerCase().trim();
+    if (teamData.name) {
+      teamData.name = teamData.name.toLowerCase().trim();
       const teamExists = await this.teamsService.getTeam({
-        identifier: teamData.identifier,
+        name: teamData.name,
       });
       if (teamExists)
         throw new HttpException(
@@ -146,7 +156,6 @@ export class TeamsController {
   }
 
   @Post(':teamId/members')
-  @UseGuards(JwtAuthGuard)
   async addMember(
     @Param('teamId') teamId: string,
     @Body() { userId, role }: { userId: string; role: TeamRoles },
@@ -155,7 +164,6 @@ export class TeamsController {
   }
 
   @Patch(':teamId/members/:userId')
-  @UseGuards(JwtAuthGuard)
   async updateMember(
     @Param('teamId') teamId: string,
     @Param('userId') userId: string,
@@ -190,7 +198,6 @@ export class TeamsController {
   }
 
   @Delete(':teamId/members/:userId')
-  @UseGuards(JwtAuthGuard)
   async removeMember(
     @Param('teamId') teamId: string,
     @Param('userId') userId: string,
@@ -213,7 +220,6 @@ export class TeamsController {
   }
 
   @Post(':teamId/invite')
-  @UseGuards(JwtAuthGuard)
   async inviteUser(
     @Param('teamId') teamId: string,
     @Body() { userId }: { userId: string },
